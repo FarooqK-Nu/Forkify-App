@@ -5,6 +5,7 @@ import searchView from './views/searchView.js';
 import 'core-js/stable';
 import 'regenerator-runtime/runtime';
 import paginationView from './views/pagination.js';
+import bookmarksView from './views/bookmarksView.js';
 
 if (module.hot) {
   module.hot.accept();
@@ -20,6 +21,8 @@ const controlRecipe = async function () {
 
     // update results view to mark selected search result
     resultsView.update(model.getSearchResultsPage());
+    //if curr recipe is bookmarked? then give it active class
+    bookmarksView.update(model.state.bookmarks);
     //loading recipe
     await model.loadRecipe(id);
 
@@ -30,6 +33,7 @@ const controlRecipe = async function () {
     recipeView.renderError(
       `Error: Can't find the recipe you are looking for : ${error}😭😭😭`,
     );
+    console.error(error);
   }
 };
 
@@ -50,7 +54,9 @@ const controlSearchResults = async function () {
 
     // 4) render initial pagination buttons
     paginationView.render(model.state.search);
-  } catch (error) {}
+  } catch (error) {
+    console.error(error);
+  }
 };
 
 const controlPagination = function (gotoPage) {
@@ -68,10 +74,27 @@ const controlServings = function (newServings) {
   recipeView.update(model.state.recipe);
 };
 
+const controlAddBookmark = function () {
+  // add/remove bookmark
+  if (!model.state.recipe.bookmarked) model.addBookmark(model.state.recipe);
+  else model.deleteBookmark(model.state.recipe.id);
+
+  //update the recipe view
+  recipeView.update(model.state.recipe);
+
+  // render bookmark
+  bookmarksView.render(model.state.bookmarks);
+};
+
+const controlPageloadBookmarks = function () {
+  bookmarksView.render(model.state.bookmarks);
+};
 //observer - subscriber pattern
 const init = function () {
+  bookmarksView.addHandlerRender(controlPageloadBookmarks);
   recipeView.addHandlerRender(controlRecipe);
   recipeView.addHndlerUpdateServings(controlServings);
+  recipeView.addHandlerAddBookmark(controlAddBookmark);
   searchView.addHandlerSearch(controlSearchResults);
   paginationView.addHandlerClick(controlPagination);
 };

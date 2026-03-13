@@ -3,12 +3,14 @@ export default class View {
   _parentElement = document.querySelector('.recipe');
   _data;
 
-  render(data) {
+  render(data, render = true) {
     if (!data || (Array.isArray(data) && data.length === 0)) {
       return this.renderError('No recipe Found!!!');
     }
     this._data = data;
     const markup = this._generateMarkup();
+
+    if (!render) return markup;
     this._clear();
     this._parentElement.insertAdjacentHTML('afterbegin', markup);
   }
