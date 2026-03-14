@@ -10,14 +10,34 @@ const timeout = function (s) {
 
 export const getJSON = async function (url) {
   try {
-    const res = await Promise.race([fetch(`${url}`), timeout(TIMEOUT_SEC)]);
-    if (!res.ok) {
-      throw new Error(`Invalid Recipe ID: ${res.status}`);
-    }
-    // https://forkify-api.jonas.io/api/v2/recipes?search=pizza
-
+    const res = await Promise.race([fetch(url), timeout(TIMEOUT_SEC)]);
     const data = await res.json();
+    if (!res.ok) {
+      throw new Error(`${data.message} (${res.status})`);
+    }
     return data;
+  } catch (error) {
+    throw new Error(`${error}`);
+  }
+};
+
+export const sendJSON = async function (url, data) {
+  try {
+    const res = await Promise.race([
+      fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      }),
+      timeout(TIMEOUT_SEC),
+    ]);
+    const responseData = await res.json();
+    if (!res.ok) {
+      throw new Error(`${responseData.message} (${res.status})`);
+    }
+    return responseData;
   } catch (error) {
     throw new Error(`${error}`);
   }
